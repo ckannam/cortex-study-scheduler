@@ -27,7 +27,7 @@
       display: block;
       margin-top: 1rem;
     }
-    input, button {
+    input, select, button {
       width: 100%;
       padding: 0.75rem;
       margin-top: 0.5rem;
@@ -58,6 +58,10 @@
       margin: 0.5rem 0;
       text-align: center;
     }
+    .add-all-btn {
+      background-color: #28a745;
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -75,6 +79,13 @@
     <label for="testDate">Test Date:</label>
     <input type="date" id="testDate">
 
+    <label for="preferredWindow">Preferred Study Window:</label>
+    <select id="preferredWindow">
+      <option value="any">Anytime</option>
+      <option value="evening">Evenings Only (4 PM – 10 PM)</option>
+      <option value="morning">Mornings Only (8 AM – 12 PM)</option>
+    </select>
+
     <button onclick="generateSchedule()">Generate Review Schedule</button>
 
     <div class="output" id="output"></div>
@@ -86,11 +97,18 @@
   </div>
 
   <script>
-    function generateICSFile(topic, date) {
-      const dtStart = date.toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0, 15);
-      const dtEnd = new Date(date.getTime() + 30 * 60000).toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0, 15);
+    const allEvents = [];
 
-      const content = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Review ${topic}\nDTSTART:${dtStart}\nDTEND:${dtEnd}\nDESCRIPTION:Spaced repetition review for ${topic}\nEND:VEVENT\nEND:VCALENDAR`;
+    function generateICSFile(events, topic) {
+      const header = "BEGIN:VCALENDAR\nVERSION:2.0";
+      const footer = "END:VCALENDAR";
+      const eventsContent = events.map(date => {
+        const dtStart = date.toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0, 15);
+        const dtEnd = new Date(date.getTime() + 60 * 60000).toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0, 15);
+        return `BEGIN:VEVENT\nSUMMARY:Review ${topic}\nDTSTART:${dtStart}\nDTEND:${dtEnd}\nDESCRIPTION:Spaced repetition review for ${topic}\nEND:VEVENT`;
+      }).join("\n");
+
+      const content = `${header}\n${eventsContent}\n${footer}`;
       const blob = new Blob([content], { type: 'text/calendar' });
       return URL.createObjectURL(blob);
     }
@@ -100,6 +118,7 @@
       const startDate = new Date(document.getElementById("startDate").value);
       const learnTime = document.getElementById("learnTime").value;
       const testDate = new Date(document.getElementById("testDate").value);
+      const preferredWindow = document.getElementById("preferredWindow").value;
       const output = document.getElementById("output");
 
       if (!topic || !startDate.getTime() || !learnTime || !testDate.getTime()) {
@@ -108,6 +127,7 @@
       }
 
       const reviewTimes = [1, 3, 7, 14, 30];
+      const reviewDates = [];
       let html = `<h3>Review Schedule for "${topic}"</h3><ul>`;
 
       reviewTimes.forEach(day => {
@@ -115,17 +135,32 @@
         reviewDate.setDate(reviewDate.getDate() + day);
 
         const [hours, minutes] = learnTime.split(":");
-        reviewDate.setHours(parseInt(hours));
+        let reviewHour = (parseInt(hours) + 13) % 24;
+
+        if (preferredWindow === "evening") {
+          if (reviewHour < 16) reviewHour = 16;
+          if (reviewHour > 22) reviewHour = 22;
+        } else if (preferredWindow === "morning") {
+          if (reviewHour < 8 || reviewHour > 12) reviewHour = 10;
+        } else {
+          if (reviewHour > 22) reviewHour = 22;
+        }
+
+        reviewDate.setHours(reviewHour);
         reviewDate.setMinutes(parseInt(minutes));
 
         if (reviewDate <= testDate) {
-          const calendarURL = generateICSFile(topic, reviewDate);
-          html += `<li>Review on: <strong>${reviewDate.toLocaleString()}</strong> (Day ${day})<br>
-                   <a class="calendar-link" href="${calendarURL}" download="review-${topic}-day${day}.ics">➕ Add to Calendar</a></li>`;
+          reviewDates.push(new Date(reviewDate));
+          html += `<li>Review on: <strong>${reviewDate.toLocaleString()}</strong> (Day ${day})</li>`;
         }
       });
 
       html += '</ul>';
+
+      if (reviewDates.length > 0) {
+        const calendarURL = generateICSFile(reviewDates, topic);
+        html += `<a class="calendar-link add-all-btn" href="${calendarURL}" download="review-${topic}-all.ics">➕ Add All to Calendar</a>`;
+      }
 
       const current = output.innerHTML;
       output.innerHTML = current + html;
