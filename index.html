@@ -18,6 +18,7 @@
       padding: 2rem;
       border-radius: 10px;
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
     }
     h1 {
       text-align: center;
@@ -42,6 +43,15 @@
     .output {
       margin-top: 2rem;
     }
+    .about {
+      max-width: 600px;
+      margin: auto;
+      background: #ffffffdd;
+      padding: 1.5rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
   </style>
 </head>
 <body>
@@ -62,6 +72,11 @@
     <button onclick="generateSchedule()">Generate Review Schedule</button>
 
     <div class="output" id="output"></div>
+  </div>
+
+  <div class="about">
+    <h2>What We Do</h2>
+    <p><strong>Cortex</strong> is a neuroscience-based study tool that helps students optimize memory retention by scheduling reviews based on the forgetting curve. We recommend optimal times to review material, based on when you learned it, your test date, and time of day. Built for students who want to study smarter, not harder.</p>
   </div>
 
   <script>
@@ -94,7 +109,9 @@
       });
 
       html += '</ul>';
-      output.innerHTML = html;
+
+      const current = output.innerHTML;
+      output.innerHTML = current + html;
     }
   </script>
 </body>
