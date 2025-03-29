@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cortex Study Scheduler</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: #f4f4f4;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+    }
+    input, button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      margin-top: 1.5rem;
+    }
+    .output {
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Cortex Study Scheduler</h1>
+    <label for="topic">Topic Name:</label>
+    <input type="text" id="topic" placeholder="e.g. Neurotransmitters">
+
+    <label for="startDate">Date Learned:</label>
+    <input type="date" id="startDate">
+
+    <button onclick="generateSchedule()">Generate Review Schedule</button>
+
+    <div class="output" id="output"></div>
+  </div>
+
+  <script>
+    function generateSchedule() {
+      const topic = document.getElementById("topic").value;
+      const startDate = new Date(document.getElementById("startDate").value);
+      const output = document.getElementById("output");
+
+      if (!topic || !startDate.getTime()) {
+        output.innerHTML = '<p>Please enter both the topic and date.</p>';
+        return;
+      }
+
+      const days = [1, 3, 7, 14, 30];
+      let html = `<h3>Review Schedule for "${topic}"</h3><ul>`;
+
+      days.forEach(day => {
+        const reviewDate = new Date(startDate);
+        reviewDate.setDate(reviewDate.getDate() + day);
+        html += `<li>Review on: <strong>${reviewDate.toDateString()}</strong> (Day ${day})</li>`;
+      });
+
+      html += '</ul>';
+      output.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
