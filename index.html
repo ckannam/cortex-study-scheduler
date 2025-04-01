@@ -126,6 +126,56 @@
       }
       return "Light Review + Recap";
     }
+
+    function generateSchedule() {
+      const topic = document.getElementById("topic").value;
+      const startDate = new Date(document.getElementById("startDate").value);
+      const learnTime = document.getElementById("learnTime").value;
+      const testDate = new Date(document.getElementById("testDate").value);
+      const preferredWindow = document.getElementById("preferredWindow").value;
+      const difficultyType = document.getElementById("difficultyType").value;
+      const output = document.getElementById("output");
+
+      if (!topic || !startDate.getTime() || !learnTime || !testDate.getTime()) {
+        output.innerHTML = '<p>Please enter all required fields.</p>';
+        return;
+      }
+
+      const reviewTimes = [1, 3, 7, 14, 30];
+      const reviewDates = [];
+      let html = `<h3>Review Schedule for "${topic}"</h3><ul>`;
+
+      reviewTimes.forEach(day => {
+        const reviewDate = new Date(startDate);
+        reviewDate.setDate(reviewDate.getDate() + day);
+
+        const [hours, minutes] = learnTime.split(":");
+        let reviewHour = (parseInt(hours) + 13) % 24;
+
+        if (preferredWindow === "evening") {
+          if (reviewHour < 16) reviewHour = 16;
+          if (reviewHour > 22) reviewHour = 22;
+        } else if (preferredWindow === "morning") {
+          if (reviewHour < 8 || reviewHour > 12) reviewHour = 10;
+        } else {
+          if (reviewHour > 22) reviewHour = 22;
+        }
+
+        reviewDate.setHours(reviewHour);
+        reviewDate.setMinutes(parseInt(minutes));
+
+        const daysUntilTest = Math.ceil((testDate - reviewDate) / (1000 * 60 * 60 * 24));
+
+        if (reviewDate <= testDate) {
+          reviewDates.push(new Date(reviewDate));
+          html += `<li>Review on: <strong>${reviewDate.toLocaleString()}</strong> (Day ${day})<br>
+          Recommended Technique: <em>${getPhaseBasedTechnique(difficultyType, daysUntilTest)}</em></li>`;
+        }
+      });
+
+      html += '</ul>';
+      output.innerHTML = html;
+    }
   </script>
 </body>
 </html>
