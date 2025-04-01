@@ -28,19 +28,12 @@
       display: block;
       margin-top: 1rem;
     }
-    input, select, button {
+    input, select {
       width: 100%;
       padding: 0.75rem;
       margin-top: 0.5rem;
       border-radius: 5px;
       border: 1px solid #ccc;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      margin-top: 1.5rem;
-      cursor: pointer;
     }
     .output {
       margin-top: 2rem;
@@ -95,8 +88,6 @@
       <option value="visual">Diagrams / Visual Interpretation</option>
     </select>
 
-    <button onclick="generateSchedule()">Generate Review Schedule</button>
-
     <div class="output" id="output"></div>
   </div>
 
@@ -106,95 +97,25 @@
   </div>
 
   <script>
-    const allEvents = [];
-
-    function formatDateForICS(date) {
-      const pad = n => String(n).padStart(2, '0');
-      const yyyy = date.getFullYear();
-      const mm = pad(date.getMonth() + 1);
-      const dd = pad(date.getDate());
-      const hh = pad(date.getHours());
-      const min = pad(date.getMinutes());
-      return `${yyyy}${mm}${dd}T${hh}${min}00`;
-    }
-
-    function generateICSFile(events, topic) {
-      const header = "BEGIN:VCALENDAR\nVERSION:2.0";
-      const footer = "END:VCALENDAR";
-      const eventsContent = events.map(date => {
-        const dtStart = formatDateForICS(date);
-        const dtEnd = formatDateForICS(new Date(date.getTime() + 60 * 60000));
-        return `BEGIN:VEVENT\nSUMMARY:Review ${topic}\nDTSTART:${dtStart}\nDTEND:${dtEnd}\nDESCRIPTION:Spaced repetition review for ${topic}\nEND:VEVENT`;
-      }).join("\n");
-
-      const content = `${header}\n${eventsContent}\n${footer}`;
-      const blob = new Blob([content], { type: 'text/calendar' });
-      return URL.createObjectURL(blob);
-    }
-
-    function generateSchedule() {
-      const topic = document.getElementById("topic").value;
-      const startDate = new Date(document.getElementById("startDate").value);
-      const learnTime = document.getElementById("learnTime").value;
-      const testDate = new Date(document.getElementById("testDate").value);
-      const preferredWindow = document.getElementById("preferredWindow").value;
-      const difficultyType = document.getElementById("difficultyType").value;
-      const output = document.getElementById("output");
-
-      if (!topic || !startDate.getTime() || !learnTime || !testDate.getTime()) {
-        output.innerHTML = '<p>Please enter all required fields.</p>';
-        return;
-      }
-
-      const reviewTimes = [1, 3, 7, 14, 30];
-      const reviewDates = [];
-      let html = `<h3>Review Schedule for "${topic}"</h3><ul>`;
-
-      reviewTimes.forEach(day => {
-        const reviewDate = new Date(startDate);
-        reviewDate.setDate(reviewDate.getDate() + day);
-
-        const [hours, minutes] = learnTime.split(":");
-        let reviewHour = (parseInt(hours) + 13) % 24;
-
-        if (preferredWindow === "evening") {
-          if (reviewHour < 16) reviewHour = 16;
-          if (reviewHour > 22) reviewHour = 22;
-        } else if (preferredWindow === "morning") {
-          if (reviewHour < 8 || reviewHour > 12) reviewHour = 10;
-        } else {
-          if (reviewHour > 22) reviewHour = 22;
+    function getPhaseBasedTechnique(type, daysUntilTest) {
+      if (daysUntilTest <= 2) return "Practice Problems / Brain Dump";
+      if (daysUntilTest <= 6) {
+        switch(type) {
+          case "memory": return "Active Recall + Practice Quizzing";
+          case "conceptual": return "Concept Mapping + Teaching";
+          case "procedural": return "Mock Problems + Timed Drills";
+          case "visual": return "Draw + Label Diagrams from Memory";
         }
-
-        reviewDate.setHours(reviewHour);
-        reviewDate.setMinutes(parseInt(minutes));
-
-        if (reviewDate <= testDate) {
-          reviewDates.push(new Date(reviewDate));
-          html += `<li>Review on: <strong>${reviewDate.toLocaleString()}</strong> (Day ${day})<br>
-          Recommended Technique: <em>${getStudyTechnique(difficultyType)}</em></li>`;
+      }
+      if (daysUntilTest <= 13) {
+        switch(type) {
+          case "memory": return "Spaced Repetition + Flashcards";
+          case "conceptual": return "Elaborative Interrogation";
+          case "procedural": return "Guided Practice + Explanation";
+          case "visual": return "Dual Coding + Visual Linking";
         }
-      });
-
-      html += '</ul>';
-
-      if (reviewDates.length > 0) {
-        const calendarURL = generateICSFile(reviewDates, topic);
-        html += `<a class="calendar-link add-all-btn" href="${calendarURL}" download="review-${topic}-all.ics">➕ Add All to Calendar</a>`;
       }
-
-      const current = output.innerHTML;
-      output.innerHTML = current + html;
-    }
-
-    function getStudyTechnique(type) {
-      switch(type) {
-        case "memory": return "Active Recall + Spaced Repetition";
-        case "conceptual": return "Elaborative Interrogation + Teaching Back";
-        case "procedural": return "Problem-Based Learning / Practice Sets";
-        case "visual": return "Dual Coding with Diagrams";
-        default: return "Active Recall";
-      }
+      return "Light Review + Recap";
     }
   </script>
 </body>
