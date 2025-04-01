@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -86,6 +87,14 @@
       <option value="morning">Mornings Only (8 AM – 12 PM)</option>
     </select>
 
+    <label for="difficultyType">Hardest Part of This Class:</label>
+    <select id="difficultyType">
+      <option value="memory">Memorization</option>
+      <option value="conceptual">Conceptual Understanding</option>
+      <option value="procedural">Problem Solving / Practice</option>
+      <option value="visual">Diagrams / Visual Interpretation</option>
+    </select>
+
     <button onclick="generateSchedule()">Generate Review Schedule</button>
 
     <div class="output" id="output"></div>
@@ -119,6 +128,7 @@
       const learnTime = document.getElementById("learnTime").value;
       const testDate = new Date(document.getElementById("testDate").value);
       const preferredWindow = document.getElementById("preferredWindow").value;
+      const difficultyType = document.getElementById("difficultyType").value;
       const output = document.getElementById("output");
 
       if (!topic || !startDate.getTime() || !learnTime || !testDate.getTime()) {
@@ -151,7 +161,8 @@
 
         if (reviewDate <= testDate) {
           reviewDates.push(new Date(reviewDate));
-          html += `<li>Review on: <strong>${reviewDate.toLocaleString()}</strong> (Day ${day})</li>`;
+          html += `<li>Review on: <strong>${reviewDate.toLocaleString()}</strong> (Day ${day})<br>
+          Recommended Technique: <em>${getStudyTechnique(difficultyType)}</em></li>`;
         }
       });
 
@@ -164,6 +175,16 @@
 
       const current = output.innerHTML;
       output.innerHTML = current + html;
+    }
+
+    function getStudyTechnique(type) {
+      switch(type) {
+        case "memory": return "Active Recall + Spaced Repetition";
+        case "conceptual": return "Elaborative Interrogation + Teaching Back";
+        case "procedural": return "Problem-Based Learning / Practice Sets";
+        case "visual": return "Dual Coding with Diagrams";
+        default: return "Active Recall";
+      }
     }
   </script>
 </body>
