@@ -108,12 +108,22 @@
   <script>
     const allEvents = [];
 
+    function formatDateForICS(date) {
+      const pad = n => String(n).padStart(2, '0');
+      const yyyy = date.getFullYear();
+      const mm = pad(date.getMonth() + 1);
+      const dd = pad(date.getDate());
+      const hh = pad(date.getHours());
+      const min = pad(date.getMinutes());
+      return `${yyyy}${mm}${dd}T${hh}${min}00`;
+    }
+
     function generateICSFile(events, topic) {
       const header = "BEGIN:VCALENDAR\nVERSION:2.0";
       const footer = "END:VCALENDAR";
       const eventsContent = events.map(date => {
-        const dtStart = date.toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0, 15);
-        const dtEnd = new Date(date.getTime() + 60 * 60000).toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0, 15);
+        const dtStart = formatDateForICS(date);
+        const dtEnd = formatDateForICS(new Date(date.getTime() + 60 * 60000));
         return `BEGIN:VEVENT\nSUMMARY:Review ${topic}\nDTSTART:${dtStart}\nDTEND:${dtEnd}\nDESCRIPTION:Spaced repetition review for ${topic}\nEND:VEVENT`;
       }).join("\n");
 
