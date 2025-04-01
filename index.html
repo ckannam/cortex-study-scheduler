@@ -107,24 +107,24 @@
 
   <script>
     function getPhaseBasedTechnique(type, daysUntilTest) {
-      if (daysUntilTest <= 2) return "Practice Problems / Brain Dump";
+      if (daysUntilTest <= 2) return "Practice Problems / Brain Dump (2+ hrs)";
       if (daysUntilTest <= 6) {
         switch(type) {
-          case "memory": return "Active Recall + Practice Quizzing";
-          case "conceptual": return "Concept Mapping + Teaching";
-          case "procedural": return "Mock Problems + Timed Drills";
-          case "visual": return "Draw + Label Diagrams from Memory";
+          case "memory": return "Active Recall + Practice Quizzing (1.5 hrs)";
+          case "conceptual": return "Concept Mapping + Teaching (1.5 hrs)";
+          case "procedural": return "Mock Problems + Timed Drills (2 hrs)";
+          case "visual": return "Draw & Label Diagrams (1.5 hrs)";
         }
       }
       if (daysUntilTest <= 13) {
         switch(type) {
-          case "memory": return "Spaced Repetition + Flashcards";
-          case "conceptual": return "Elaborative Interrogation";
-          case "procedural": return "Guided Practice + Explanation";
-          case "visual": return "Dual Coding + Visual Linking";
+          case "memory": return "Spaced Repetition + Flashcards (1 hr)";
+          case "conceptual": return "Elaborative Interrogation (1 hr)";
+          case "procedural": return "Guided Practice + Explanation (1 hr)";
+          case "visual": return "Dual Coding + Visual Linking (1 hr)";
         }
       }
-      return "Light Review + Recap";
+      return "Light Review + Recap (30 min)";
     }
 
     function generateSchedule() {
